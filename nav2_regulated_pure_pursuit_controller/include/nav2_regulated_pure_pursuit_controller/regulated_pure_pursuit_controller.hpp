@@ -300,6 +300,10 @@ protected:
   double inflation_cost_scaling_factor_;
   double regulated_linear_scaling_min_radius_;
   double regulated_linear_scaling_min_speed_;
+  bool use_fixed_turn_speed_;
+  double fixed_turn_speed_;
+  bool use_fixed_curvature_lookahead_;
+  double curvature_lookahead_dist_;
   bool use_rotate_to_heading_;
   double max_angular_accel_;
   double rotate_to_heading_min_angle_;

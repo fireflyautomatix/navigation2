@@ -104,6 +104,14 @@ void RegulatedPurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".regulated_linear_scaling_min_speed", rclcpp::ParameterValue(0.25));
   declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_fixed_turn_speed", rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".fixed_turn_speed", rclcpp::ParameterValue(0.25));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_fixed_curvature_lookahead", rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".curvature_lookahead_dist", rclcpp::ParameterValue(0.6));
+  declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_rotate_to_heading", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".rotate_to_heading_min_angle", rclcpp::ParameterValue(0.785));
@@ -165,6 +173,18 @@ void RegulatedPurePursuitController::configure(
   node->get_parameter(
     plugin_name_ + ".regulated_linear_scaling_min_speed",
     regulated_linear_scaling_min_speed_);
+  node->get_parameter(
+    plugin_name_ + ".use_fixed_turn_speed",
+    use_fixed_turn_speed_);
+  node->get_parameter(
+    plugin_name_ + ".fixed_turn_speed",
+    fixed_turn_speed_);
+  node->get_parameter(
+    plugin_name_ + ".use_fixed_curvature_lookahead",
+    use_fixed_curvature_lookahead_);
+  node->get_parameter(
+    plugin_name_ + ".curvature_lookahead_dist",
+    curvature_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".use_rotate_to_heading", use_rotate_to_heading_);
   node->get_parameter(plugin_name_ + ".rotate_to_heading_min_angle", rotate_to_heading_min_angle_);
   node->get_parameter(plugin_name_ + ".max_angular_accel", max_angular_accel_);

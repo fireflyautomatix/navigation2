@@ -349,8 +349,8 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
   double linear_vel, angular_vel;
 
-  auto curvature_lookahead_pose = params_->use_fixed_curvature_lookahead ?
-    getLookAheadPoint(params_->curvature_lookahead_dist, transformed_plan) :
+  auto curvature_lookahead_pose = use_fixed_curvature_lookahead_ ?
+    getLookAheadPoint(curvature_lookahead_dist_, transformed_plan) :
     carrot_pose;
   double curvature = calculateCurvature(curvature_lookahead_pose.pose.position);
 

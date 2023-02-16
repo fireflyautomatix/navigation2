@@ -349,10 +349,17 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
   double linear_vel, angular_vel;
 
-  auto curvature_lookahead_pose = use_fixed_curvature_lookahead_ ?
-    getLookAheadPoint(curvature_lookahead_dist_, transformed_plan) :
-    carrot_pose;
-  double curvature = calculateCurvature(curvature_lookahead_pose.pose.position);
+  double desired_curvature = calculateCurvature(carrot_pose.pose.position);
+
+  double regulation_curvature;
+  if (use_fixed_curvature_lookahead_) {
+    auto curvature_lookahead_pose = getLookAheadPoint(
+      curvature_lookahead_dist_,
+      transformed_plan);
+    regulation_curvature = calculateCurvature(curvature_lookahead_pose.pose.position);
+  } else {
+    regulation_curvature = desired_curvature;
+  }
 
   // Setting the velocity direction
   double sign = 1.0;
@@ -371,12 +378,12 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     rotateToHeading(linear_vel, angular_vel, angle_to_heading, speed);
   } else {
     applyConstraints(
-      curvature, speed,
+      regulation_curvature, speed,
       costAtPose(pose.pose.position.x, pose.pose.position.y), transformed_plan,
       linear_vel, sign);
 
     // Apply curvature to angular velocity after constraining linear velocity
-    angular_vel = linear_vel * curvature;
+    angular_vel = linear_vel * desired_curvature;
   }
 
   // Collision checking on this velocity heading
@@ -879,6 +886,10 @@ RegulatedPurePursuitController::dynamicParametersCallback(
         min_approach_linear_velocity_ = parameter.as_double();
       } else if (name == plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot") {
         max_allowed_time_to_collision_up_to_carrot_ = parameter.as_double();
+      } else if (name == plugin_name_ + ".fixed_turn_speed") {
+        fixed_turn_speed_ = parameter.as_double();
+      } else if (name == plugin_name_ + ".curvature_lookahead_dist") {
+        curvature_lookahead_dist_ = parameter.as_double();
       } else if (name == plugin_name_ + ".cost_scaling_dist") {
         cost_scaling_dist_ = parameter.as_double();
       } else if (name == plugin_name_ + ".cost_scaling_gain") {
@@ -900,6 +911,10 @@ RegulatedPurePursuitController::dynamicParametersCallback(
         use_velocity_scaled_lookahead_dist_ = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_regulated_linear_velocity_scaling") {
         use_regulated_linear_velocity_scaling_ = parameter.as_bool();
+      } else if (name == plugin_name_ + ".use_fixed_turn_speed") {
+        use_fixed_turn_speed_ = parameter.as_bool();
+      } else if (name == plugin_name_ + ".use_fixed_curvature_lookahead") {
+        use_fixed_curvature_lookahead_ = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_cost_regulated_linear_velocity_scaling") {
         use_cost_regulated_linear_velocity_scaling_ = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_rotate_to_heading") {

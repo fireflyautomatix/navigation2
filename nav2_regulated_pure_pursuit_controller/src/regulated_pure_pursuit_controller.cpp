@@ -292,15 +292,26 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController
 }
 
 double RegulatedPurePursuitController::getLookAheadDistance(
-  const geometry_msgs::msg::Twist & speed)
+  const geometry_msgs::msg::Twist & speed,
+  const nav_msgs::msg::Path & path,
+  const geometry_msgs::msg::PoseStamped & pose)
 {
   // If using velocity-scaled look ahead distances, find and clamp the dist
   // Else, use the static look ahead distance
   double lookahead_dist = lookahead_dist_;
+
   if (use_velocity_scaled_lookahead_dist_) {
     lookahead_dist = fabs(speed.linear.x) * lookahead_time_;
-    lookahead_dist = std::clamp(lookahead_dist, min_lookahead_dist_, max_lookahead_dist_);
   }
+
+  if (use_dubins_min_lookahead_dist_) {
+    double dubins_min_lookahead_dist = getDubinsMinLookAheadDistance(path, pose);
+    if (lookahead_dist < dubins_min_lookahead_dist) {
+      lookahead_dist = dubins_min_lookahead_dist;
+    }
+  }
+
+  lookahead_dist = std::clamp(lookahead_dist, min_lookahead_dist_, max_lookahead_dist_);
 
   return lookahead_dist;
 }
@@ -319,6 +330,22 @@ double calculateCurvature(geometry_msgs::msg::Point lookahead_point)
   } else {
     return 0.0;
   }
+}
+
+double RegulatedPurePursuitController::getDubinsMinLookAheadDistance(
+  const nav_msgs::msg::Path & path,
+  const geometry_msgs::msg::PoseStamped & pose)
+{
+  // This constraint assumes the following:
+  // - the controller may turn as sharp as the min turn radius
+  // - the controller is parallel to the path
+  // Therefore the dubins curve we are assuming is simply two
+  // symmetrical arcs of `arc_length` radians to reach the path.
+  // These serve to give us a reasonable bound on the lookahead
+  // without generating full dubins curves
+  double error = nav2_util::geometry_utils::cross_track_error(path, pose);
+  double arc_length = std::acos(1.0 - error / (2.0 * dubins_min_turning_radius_));
+  return 2 * dubins_min_turning_radius_ * std::sin(arc_length);
 }
 
 geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocityCommands(
@@ -341,7 +368,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   auto transformed_plan = transformGlobalPlan(pose);
 
   // Find look ahead distance and point on path and publish
-  double lookahead_dist = getLookAheadDistance(speed);
+  double lookahead_dist = getLookAheadDistance(speed, transformed_plan, pose);
 
   // Check for reverse driving
   if (allow_reversing_) {

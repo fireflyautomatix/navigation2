@@ -763,6 +763,7 @@ void RegulatedPurePursuitController::applyConstraints(
 void RegulatedPurePursuitController::setPlan(const nav_msgs::msg::Path & path)
 {
   global_plan_ = path;
+  path_progress_cursor_ = global_plan_.poses.begin();
 }
 
 void RegulatedPurePursuitController::setSpeedLimit(
@@ -790,6 +791,10 @@ nav_msgs::msg::Path RegulatedPurePursuitController::transformGlobalPlan(
     throw nav2_core::PlannerException("Received plan with zero length");
   }
 
+  if (path_progress_cursor_ == global_plan_.poses.end()) {
+    throw nav2_core::PlannerException("No more poses to transform");
+  }
+
   // let's get the pose of the robot in the frame of the plan
   geometry_msgs::msg::PoseStamped robot_pose;
   if (!transformPose(global_plan_.header.frame_id, pose, robot_pose)) {
@@ -801,14 +806,14 @@ nav_msgs::msg::Path RegulatedPurePursuitController::transformGlobalPlan(
 
   auto closest_pose_upper_bound =
     nav2_util::geometry_utils::first_after_integrated_distance(
-    global_plan_.poses.begin(), global_plan_.poses.end(), max_robot_pose_search_dist_);
+    path_progress_cursor_, global_plan_.poses.end(), max_robot_pose_search_dist_);
 
   // First find the closest pose on the path to the robot
   // bounded by when the path turns around (if it does) so we don't get a pose from a later
   // portion of the path
   auto transformation_begin =
     nav2_util::geometry_utils::min_by(
-    global_plan_.poses.begin(), closest_pose_upper_bound,
+    path_progress_cursor_, closest_pose_upper_bound,
     [&robot_pose](const geometry_msgs::msg::PoseStamped & ps) {
       return euclidean_distance(robot_pose, ps);
     });
@@ -842,7 +847,7 @@ nav_msgs::msg::Path RegulatedPurePursuitController::transformGlobalPlan(
 
   // Remove the portion of the global plan that we've already passed so we don't
   // process it on the next iteration (this is called path pruning)
-  global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
+  path_progress_cursor_ = transformation_begin;
   global_path_pub_->publish(transformed_plan);
 
   if (transformed_plan.poses.empty()) {

@@ -323,6 +323,8 @@ protected:
   double dubins_min_turning_radius_;
 
   nav_msgs::msg::Path global_plan_;
+  std::vector<geometry_msgs::msg::PoseStamped>::const_iterator path_progress_cursor_;
+
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>>
   carrot_pub_;

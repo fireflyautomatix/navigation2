@@ -311,6 +311,8 @@ protected:
   bool allow_reversing_;
   double max_robot_pose_search_dist_;
   bool use_interpolation_;
+  bool use_dubins_min_lookahead_dist_;
+  double dubins_min_turning_radius_;
 
   nav_msgs::msg::Path global_plan_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;

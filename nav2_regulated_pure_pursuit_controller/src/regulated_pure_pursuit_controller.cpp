@@ -125,6 +125,11 @@ void RegulatedPurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_interpolation",
     rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_dubins_min_lookahead_dist",
+    rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".dubins_min_turning_radius", rclcpp::ParameterValue(1.0));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
   base_desired_linear_vel_ = desired_linear_vel_;
@@ -196,6 +201,11 @@ void RegulatedPurePursuitController::configure(
   node->get_parameter(
     plugin_name_ + ".use_interpolation",
     use_interpolation_);
+  node->get_parameter(plugin_name_ + ".use_dubins_min_lookahead_dist",
+    use_dubins_min_lookahead_dist_);
+  node->get_parameter(
+    plugin_name_ + ".dubins_min_turning_radius",
+    dubins_min_turning_radius_);
 
   transform_tolerance_ = tf2::durationFromSec(transform_tolerance);
   control_duration_ = 1.0 / control_frequency;

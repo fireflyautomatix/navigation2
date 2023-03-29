@@ -96,6 +96,11 @@ ParameterHandler::ParameterHandler(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_collision_detection",
     rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_approach_angular_velocity_scaling",
+    rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".min_approach_angular_velocity", rclcpp::ParameterValue(0.5));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", params_.desired_linear_vel);
   params_.base_desired_linear_vel = params_.desired_linear_vel;
@@ -161,6 +166,12 @@ ParameterHandler::ParameterHandler(
       " every point on path for the closest value.");
     params_.max_robot_pose_search_dist = std::numeric_limits<double>::max();
   }
+  node->get_parameter(
+    plugin_name_ + ".use_approach_angular_velocity_scaling",
+    params_.use_approach_angular_velocity_scaling);
+  node->get_parameter(
+    plugin_name_ + ".min_approach_angular_velocity",
+    params_.min_approach_angular_velocity);
 
   node->get_parameter(
     plugin_name_ + ".use_interpolation",
@@ -243,6 +254,8 @@ ParameterHandler::dynamicParametersCallback(
         params_.max_angular_accel = parameter.as_double();
       } else if (name == plugin_name_ + ".rotate_to_heading_min_angle") {
         params_.rotate_to_heading_min_angle = parameter.as_double();
+      } else if (name == plugin_name_ + ".min_approach_angular_velocity") {
+        params_.min_approach_angular_velocity = parameter.as_double();
       }
     } else if (type == ParameterType::PARAMETER_BOOL) {
       if (name == plugin_name_ + ".use_velocity_scaled_lookahead_dist") {
@@ -271,6 +284,8 @@ ParameterHandler::dynamicParametersCallback(
           continue;
         }
         params_.allow_reversing = parameter.as_bool();
+      } else if (name == plugin_name_ + ".use_approach_angular_velocity_scaling") {
+        params_.use_approach_angular_velocity_scaling = parameter.as_bool();
       }
     }
   }

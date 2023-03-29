@@ -59,6 +59,8 @@ struct Parameters
   bool use_interpolation;
   bool use_collision_detection;
   double transform_tolerance;
+  bool use_approach_angular_velocity_scaling;
+  double min_approach_angular_velocity;
 };
 
 /**

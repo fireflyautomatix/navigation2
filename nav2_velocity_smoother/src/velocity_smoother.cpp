@@ -322,14 +322,12 @@ void VelocitySmoother::smootherTimer()
   {
     cmd_vel->linear.x = applyConstraints(
       current_.linear.x, command_->linear.x, max_accels_[0], max_decels_[0], eta);
-    last_cmd_.linear.x = cmd_vel->linear.x;
   }
   if (!applyDeadBand(
       cmd_vel->linear.y, deadband_velocities_[1], natural_deadband_velocities_[1]))
   {
     cmd_vel->linear.y = applyConstraints(
       current_.linear.y, command_->linear.y, max_accels_[1], max_decels_[1], eta);
-    last_cmd_.linear.y = cmd_vel->linear.y;
   }
 
   if (!applyDeadBand(
@@ -337,8 +335,9 @@ void VelocitySmoother::smootherTimer()
   {
     cmd_vel->angular.z = applyConstraints(
       current_.angular.z, command_->angular.z, max_accels_[2], max_decels_[2], eta);
-    last_cmd_.angular.z = cmd_vel->angular.z;
   }
+
+  last_cmd_ = *cmd_vel;
   smoothed_cmd_pub_->publish(std::move(cmd_vel));
 }
 

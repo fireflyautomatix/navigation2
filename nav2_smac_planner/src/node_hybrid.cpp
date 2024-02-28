@@ -530,7 +530,7 @@ void NodeHybrid::resetObstacleHeuristic(
 
   // initialize goal cell with a very small value to differentiate it from 0.0 (~uninitialized)
   // the negative value means the cell is in the open set
-  obstacle_heuristic_lookup_table[goal_index] = -0.00001f;
+  obstacle_heuristic_lookup_table.at(goal_index) = -0.00001f;
 }
 
 float NodeHybrid::adjustedFootprintCost(const float & cost)
